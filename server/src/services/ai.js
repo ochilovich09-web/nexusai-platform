@@ -29,7 +29,7 @@ export function activeProvider() {
   if (process.env.GEMINI_API_KEY) {
     return {
       provider: "gemini",
-      model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
     };
   }
   if (process.env.OPENAI_API_KEY) {
@@ -147,9 +147,10 @@ async function* streamGemini({
     },
   });
 
-  // 429/503 — Google tomonidagi vaqtinchalik yuklama. Oqim boshlanmagani uchun
-  // bu yerda qayta urinish xavfsiz: foydalanuvchi hech narsani ko'rmagan.
+  // 503 va qisqa muddatli 429 — qayta urinamiz. Ammo kvota tugagan bo'lsa
+  // (429 + "quota") qayta urinish faqat qolgan limitni tezroq yeydi.
   let res;
+  let errorBody = "";
   for (let attempt = 0; ; attempt++) {
     res = await fetch(url, {
       method: "POST",
@@ -159,15 +160,19 @@ async function* streamGemini({
       },
       body,
     });
-    if (res.ok || attempt >= 2 || (res.status !== 429 && res.status !== 503))
-      break;
+    if (res.ok) break;
+
+    errorBody = await res.text();
+    const quotaExhausted = res.status === 429 && /quota/i.test(errorBody);
+    const retryable =
+      (res.status === 503 || res.status === 429) && !quotaExhausted;
+    if (!retryable || attempt >= 2) break;
+
     await new Promise((r) => setTimeout(r, 700 * 2 ** attempt));
   }
 
   if (!res.ok)
-    throw new Error(
-      `Gemini ${res.status}: ${(await res.text()).slice(0, 400)}`,
-    );
+    throw new Error(`Gemini ${res.status}: ${errorBody.slice(0, 400)}`);
 
   for await (const evt of sseLines(res.body)) {
     const parts = evt.candidates?.[0]?.content?.parts;
