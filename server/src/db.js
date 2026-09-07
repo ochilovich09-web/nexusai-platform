@@ -16,6 +16,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  */
 const remoteUrl = process.env.TURSO_DATABASE_URL;
 
+// Serverless muhitda fayl tizimi faqat o'qish uchun ochiq (/tmp dan tashqari).
+// TURSO_DATABASE_URL berilmasa, quyida mkdirSync EROFS bilan yiqiladi va
+// funksiya tushunarsiz "FUNCTION_INVOCATION_FAILED" beradi. Sababini aytamiz.
+if (!remoteUrl && process.env.VERCEL) {
+  throw new Error(
+    'TURSO_DATABASE_URL topilmadi. Vercel'da lokal SQLite fayli ishlamaydi ' +
+      '(fayl tizimi faqat o'qish uchun va vaqtinchalik). ' +
+      'Project Settings > Environment Variables da TURSO_DATABASE_URL va ' +
+      'TURSO_AUTH_TOKEN ni qo'shing, so'ng qayta deploy qiling.'
+  );
+}
+
 export const db = remoteUrl
   ? new Database(remoteUrl, { authToken: process.env.TURSO_AUTH_TOKEN })
   : (() => {
