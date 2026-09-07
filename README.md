@@ -104,12 +104,19 @@ Baza esa **Turso** (bulutdagi libSQL) — chunki Vercel'da disk vaqtinchalik.
 
 #### 1-qadam. Turso bazasi
 
+Windows'da eng oson yo'l — brauzer orqali (CLI o'rnatish shart emas):
+
+1. https://turso.tech ga kiring va GitHub bilan ro'yxatdan o'ting (bepul reja yetarli).
+2. **Create Database** -> nom: `nexusai`, hududni o'zingizga yaqinini tanlang.
+3. Baza sahifasida ikkita qiymatni oling:
+   - **Database URL** — `libsql://nexusai-...turso.io`
+   - **Create Token** tugmasi orqali **auth token**
+
+Bu ikkisini `server/.env` ga yozing:
+
 ```bash
-npm i -g turso
-turso auth signup
-turso db create nexusai
-turso db show nexusai --url        # -> libsql://...
-turso db tokens create nexusai     # -> auth token
+TURSO_DATABASE_URL=libsql://nexusai-....turso.io
+TURSO_AUTH_TOKEN=ey...
 ```
 
 #### 2-qadam. Bazani to'ldirish
