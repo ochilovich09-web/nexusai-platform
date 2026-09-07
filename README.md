@@ -212,7 +212,3 @@ qolgan kod so'rovlarni shu modul orqali bajaradi.
 Kod ishlab chiqarish uchun asos sifatida yozilgan, lekin jonli tizimga chiqarishdan oldin:
 HTTPS majburiy qiling, `JWT_SECRET` ni almashtiring, 2FA kodini haqiqiy kanal orqali yuboring,
 fayl yuklashda antivirus tekshiruvini qo'shing va audit bazasidan muntazam zaxira oling.
-# yordamhub
-# yordamhub
-# yordamhub
-# yordamhub
