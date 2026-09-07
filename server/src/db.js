@@ -27,19 +27,50 @@ export const db = remoteUrl
       return local;
     })();
 
-// libsql'ning .get() natijasiga xizmatchi `_metadata` maydonini qo'shadi.
-// U API javoblariga tushib qolmasligi uchun shu yerda kesib tashlanadi.
+// Qator natijalarini normallashtirish:
+//   1. libsql .get() ga xizmatchi `_metadata` maydonini qo'shadi — API javoblariga
+//      tushmasligi uchun olib tashlanadi.
+//   2. Turso zahiralangan kalit so'z bo'lgan ustun nomlarini KATTA harfda qaytaradi
+//      (masalan `action` -> `ACTION`). Natijada r.action `undefined` bo'lib qoladi va
+//      audit hash-zanjiri jimgina buziladi. Shuning uchun bunday kalitlar kichik
+//      harfga qaytariladi. Sxemadagi barcha ustunlar kichik harfda.
+const normalizeRow = (row) => {
+  if (!row || typeof row !== 'object') return row;
+  delete row._metadata;
+  for (const key of Object.keys(row)) {
+    const lower = key.toLowerCase();
+    if (lower !== key && !(lower in row)) {
+      row[lower] = row[key];
+      delete row[key];
+    }
+  }
+  return row;
+};
+
 const preparePlain = db.prepare.bind(db);
 db.prepare = (sql) => {
   const stmt = preparePlain(sql);
   const getPlain = stmt.get.bind(stmt);
-  stmt.get = (...args) => {
-    const row = getPlain(...args);
-    if (row && typeof row === 'object') delete row._metadata;
-    return row;
+  const allPlain = stmt.all.bind(stmt);
+  stmt.get = (...args) => normalizeRow(getPlain(...args));
+  stmt.all = (...args) => {
+    const rows = allPlain(...args);
+    return Array.isArray(rows) ? rows.map(normalizeRow) : rows;
   };
   return stmt;
 };
+
+// Turso (uzoq Hrana protokoli) da tranzaksiya ishlamaydi: har bir statement
+// alohida HTTP oqimida ketishi mumkin, shuning uchun BEGIN va COMMIT turli
+// ulanishlarga tushib "no transaction is active" xatosini beradi.
+// Shu sababli uzoq rejimda tranzaksiya o'rniga statementlar ketma-ket bajariladi.
+//
+// Ta'siri: indexDocument() ichidagi chunk yozuvlari atomar emas — o'rtada xato
+// bo'lsa hujjat qisman indekslangan bo'lib qolishi mumkin (hujjatni qayta
+// yuklash bilan tuzatiladi). Lokal fayl rejimida atomarlik saqlanadi.
+if (remoteUrl) {
+  db.transaction = (fn) => (...args) => fn(...args);
+}
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
