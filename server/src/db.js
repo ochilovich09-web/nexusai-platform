@@ -21,10 +21,10 @@ const remoteUrl = process.env.TURSO_DATABASE_URL;
 // funksiya tushunarsiz "FUNCTION_INVOCATION_FAILED" beradi. Sababini aytamiz.
 if (!remoteUrl && process.env.VERCEL) {
   throw new Error(
-    'TURSO_DATABASE_URL topilmadi. Vercel'da lokal SQLite fayli ishlamaydi ' +
-      '(fayl tizimi faqat o'qish uchun va vaqtinchalik). ' +
-      'Project Settings > Environment Variables da TURSO_DATABASE_URL va ' +
-      'TURSO_AUTH_TOKEN ni qo'shing, so'ng qayta deploy qiling.'
+    "TURSO_DATABASE_URL topilmadi. Vercel'da lokal SQLite fayli ishlamaydi " +
+      "(fayl tizimi faqat o'qish uchun va vaqtinchalik). " +
+      "Project Settings > Environment Variables da TURSO_DATABASE_URL va " +
+      "TURSO_AUTH_TOKEN ni qo'shing, so'ng qayta deploy qiling."
   );
 }
 
