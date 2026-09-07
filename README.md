@@ -213,3 +213,4 @@ Kod ishlab chiqarish uchun asos sifatida yozilgan, lekin jonli tizimga chiqarish
 HTTPS majburiy qiling, `JWT_SECRET` ni almashtiring, 2FA kodini haqiqiy kanal orqali yuboring,
 fayl yuklashda antivirus tekshiruvini qo'shing va audit bazasidan muntazam zaxira oling.
 # yordamhub
+# yordamhub
