@@ -214,3 +214,4 @@ HTTPS majburiy qiling, `JWT_SECRET` ni almashtiring, 2FA kodini haqiqiy kanal or
 fayl yuklashda antivirus tekshiruvini qo'shing va audit bazasidan muntazam zaxira oling.
 # yordamhub
 # yordamhub
+# yordamhub
