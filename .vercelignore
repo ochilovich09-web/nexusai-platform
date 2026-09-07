@@ -1,0 +1,20 @@
+# Deploy bundle'iga tushmasligi kerak bo'lgan fayllar.
+# Vercel CLI lokal papkani yuklaydi — bu ro'yxatsiz .env va lokal baza ham ketadi.
+
+# Sirlar — Vercel'da Environment Variables orqali beriladi
+.env
+.env.*
+!.env.example
+server/.env
+client/.env
+
+# Lokal SQLite bazasi — prodda Turso ishlatiladi
+server/data/
+
+# Vercel o'zi o'rnatadi va quradi
+node_modules
+client/dist
+dist
+
+.git
+*.log
