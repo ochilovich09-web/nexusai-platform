@@ -97,75 +97,64 @@ npm start         # server dist'ni ham tarqatadi, hammasi 8787-portda
 - `JWT_SECRET` — uzun tasodifiy satr
 - `CLIENT_ORIGIN` — haqiqiy domen
 
-### B varianti — Vercel (frontend) + Railway (backend)
+### B varianti — hammasi Vercel'da (bepul)
 
-**Nega ikkiga bo'linadi?** Vercel'da fayl tizimi vaqtinchalik: SQLite bazasi
-(`nexusai.db`) har so'rovdan keyin o'chib ketadi. Shuning uchun backend doimiy
-diski (volume) bor hostda turadi, Vercel'da faqat frontend qoladi.
+Frontend ham, backend ham bitta Vercel loyihasida turadi.
+Baza esa **Turso** (bulutdagi libSQL) — chunki Vercel'da disk vaqtinchalik.
 
-Tartib muhim: **avval backend**, chunki uning manzili frontend'ga kerak.
-
-#### 1-qadam. Backend -> Railway
-
-Loyihani GitHub'ga yuklang, so'ng Railway'da **New Project -> Deploy from GitHub repo**.
-`railway.json` avtomatik o'qiladi (build va start buyruqlari o'sha yerda).
-
-**a) Volume qo'shing** — bu eng muhim qadam, busiz baza yo'qoladi:
-
-*Service -> Settings -> Volumes -> New Volume*, mount path: `/data`
-
-**b) O'zgaruvchilarni kiriting** (*Variables* bo'limi):
-
-| O'zgaruvchi | Qiymat |
-|---|---|
-| `DATA_DIR` | `/data` — volume manzili |
-| `GEMINI_API_KEY` | AI Studio'dan olingan kalit |
-| `JWT_SECRET` | uzun tasodifiy satr |
-| `GEMINI_MODEL` | `gemini-3.6-flash` |
-| `CLIENT_ORIGIN` | hozircha bo'sh (3-qadamda to'ldiriladi) |
-
-`PORT` ni **qo'lda kiritmang** — Railway uni o'zi beradi, server esa uni o'qiydi.
-
-**c) Domen oling**: *Settings -> Networking -> Generate Domain*.
-Natijada `https://nexusai-api.up.railway.app` kabi manzil olasiz.
-
-**d) Bazani to'ldiring** (bir marta, sinov hisoblari uchun):
+#### 1-qadam. Turso bazasi
 
 ```bash
-railway run npm --prefix server run seed
+npm i -g turso
+turso auth signup
+turso db create nexusai
+turso db show nexusai --url        # -> libsql://...
+turso db tokens create nexusai     # -> auth token
 ```
 
-#### 2-qadam. Frontend -> Vercel
+#### 2-qadam. Bazani to'ldirish
+
+Lokal mashinada `server/.env` ga yuqoridagi ikki qiymatni yozing va bir marta ishga tushiring:
+
+```bash
+npm run seed
+```
+
+Bu sinov hisoblari va boshlang'ich ma'lumotlarni to'g'ridan-to'g'ri Turso'ga yozadi.
+
+#### 3-qadam. Vercel'ga deploy
 
 ```bash
 npx vercel --prod
 ```
 
-So'ng Vercel'da **Settings -> Environment Variables** ga qo'shing:
+**Settings -> Environment Variables** da quyidagilarni kiriting:
 
 | O'zgaruvchi | Qiymat |
 |---|---|
-| `VITE_API_URL` | `https://nexusai-api.up.railway.app` |
+| `TURSO_DATABASE_URL` | `libsql://nexusai-...turso.io` |
+| `TURSO_AUTH_TOKEN` | Turso tokeni |
+| `GEMINI_API_KEY` | AI Studio kaliti |
+| `JWT_SECRET` | uzun tasodifiy satr |
 
-Qo'shgandan keyin **qayta deploy qiling** — Vite bu qiymatni build paytida bundle ichiga yozadi.
+`VITE_API_URL` **kerak emas** — frontend va API bitta domenda, `/api` nisbiy yo'l ishlaydi.
+`CLIENT_ORIGIN` ham kerak emas: bir xil domen bo'lgani uchun CORS muammosi yo'q.
 
-#### 3-qadam. CORS'ni yopish
+Qo'shgandan keyin qayta deploy qiling.
 
-Railway'ga qaytib, `CLIENT_ORIGIN` ga Vercel domeningizni yozing
-(vergul bilan bir nechta bo'lishi mumkin):
+#### Bu variantning cheklovlari
 
-```bash
-CLIENT_ORIGIN=https://your-app.vercel.app,https://your-app-git-main-you.vercel.app
-```
+- **Rate limiting zaiflashadi** — hisoblagich har bir instansiya xotirasida, umumiy emas.
+  Jiddiy himoya kerak bo'lsa uni ham Turso'ga yoki Upstash Redis'ga ko'chirish lozim.
+- **Funksiya muddati 60 soniya** (`vercel.json` dagi `maxDuration`). Juda uzun
+  javoblarda oqim uzilishi mumkin.
 
-Tayyor. Tekshirish: `https://nexusai-api.up.railway.app/api/health` javob berishi kerak.
+### C varianti — doimiy diskli host
 
-#### Boshqa hostlar
-
-`DATA_DIR` har qanday hostda ishlaydi — volume'ni ulab, shu o'zgaruvchiga uning
-manzilini yozsangiz kifoya (Fly.io, Koyeb, Render, oddiy VPS). Shart faqat ikkitasi:
-**doimiy disk** va **uzluksiz ishlaydigan protsess** (2FA kodlari, rate limiting va
-oqimli javob shuni talab qiladi).
+Turso'siz, oddiy SQLite fayli bilan: Railway, Fly.io, Koyeb yoki oddiy VPS.
+`DATA_DIR` o'zgaruvchisiga volume manzilini bering (masalan `/data`), `TURSO_DATABASE_URL`
+ni esa bo'sh qoldiring — kod avtomatik lokal fayl rejimiga o'tadi.
+Frontend'ni Vercel'da qoldirsangiz, `VITE_API_URL` va `CLIENT_ORIGIN` ni to'ldiring.
 
 #### Diqqat — kalit haqida
 

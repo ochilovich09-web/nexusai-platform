@@ -70,10 +70,16 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || 'Ichki server xatosi' });
 });
 
-app.listen(PORT, () => {
-  const ai = activeProvider();
-  console.log(`\n  NexusAI server → http://localhost:${PORT}`);
-  console.log(`  AI provayder   → ${ai.provider} (${ai.model})`);
-  if (ai.provider === 'demo') console.log('  ⚠  Kalit topilmadi — demo rejim. server/.env faylini to\u2018ldiring.\n');
-  else console.log('');
-});
+// Vercel'da bu fayl serverless funksiya sifatida import qilinadi — u yerda
+// app.listen() chaqirilmaydi. Faqat to'g'ridan-to'g'ri ishga tushirilganda tinglaymiz.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    const ai = activeProvider();
+    console.log(`\n  NexusAI server → http://localhost:${PORT}`);
+    console.log(`  AI provayder   → ${ai.provider} (${ai.model})`);
+    if (ai.provider === 'demo') console.log('  ⚠  Kalit topilmadi — demo rejim. server/.env faylini to\u2018ldiring.\n');
+    else console.log('');
+  });
+}
+
+export default app;

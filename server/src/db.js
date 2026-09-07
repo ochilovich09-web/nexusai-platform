@@ -1,17 +1,45 @@
-import Database from 'better-sqlite3';
+import Database from 'libsql';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// DATA_DIR — hostdagi doimiy disk (volume) manzili.
-// Bo'sh bo'lsa lokal `server/data` ishlatiladi.
-const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-export const db = new Database(path.join(dataDir, 'nexusai.db'));
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+/**
+ * Ikki rejim:
+ *   1. Turso (bulut) — TURSO_DATABASE_URL berilsa. Vercel kabi serverless
+ *      muhitlarda shu rejim ishlatiladi, chunki lokal disk vaqtinchalik.
+ *   2. Lokal fayl — aks holda. DATA_DIR bilan papkani o'zgartirish mumkin.
+ *
+ * `libsql` paketi better-sqlite3 bilan bir xil SINXRON API beradi,
+ * shuning uchun qolgan kod (db.prepare(...).get()/.all()/.run()) o'zgarmaydi.
+ */
+const remoteUrl = process.env.TURSO_DATABASE_URL;
+
+export const db = remoteUrl
+  ? new Database(remoteUrl, { authToken: process.env.TURSO_AUTH_TOKEN })
+  : (() => {
+      const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+      const local = new Database(path.join(dataDir, 'nexusai.db'));
+      local.pragma('journal_mode = WAL');
+      local.pragma('foreign_keys = ON');
+      return local;
+    })();
+
+// libsql'ning .get() natijasiga xizmatchi `_metadata` maydonini qo'shadi.
+// U API javoblariga tushib qolmasligi uchun shu yerda kesib tashlanadi.
+const preparePlain = db.prepare.bind(db);
+db.prepare = (sql) => {
+  const stmt = preparePlain(sql);
+  const getPlain = stmt.get.bind(stmt);
+  stmt.get = (...args) => {
+    const row = getPlain(...args);
+    if (row && typeof row === 'object') delete row._metadata;
+    return row;
+  };
+  return stmt;
+};
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
@@ -27,6 +55,12 @@ CREATE TABLE IF NOT EXISTS users (
   settings      TEXT DEFAULT '{}',
   created_at    TEXT DEFAULT (datetime('now')),
   last_active   TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS pending_2fa (
+  user_id  TEXT PRIMARY KEY,
+  code     TEXT NOT NULL,
+  expires  INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS conversations (

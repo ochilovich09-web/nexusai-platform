@@ -6,7 +6,20 @@ import { signToken, requireAuth, publicUser } from '../middleware/auth.js';
 import { writeAudit } from '../services/audit.js';
 
 const r = Router();
-const pending2fa = new Map();   // userId -> { code, expires }
+// 2FA kodlari bazada saqlanadi: serverless muhitda login va tasdiqlash
+// so'rovlari turli instansiyalarga tushishi mumkin, xotiradagi Map ishlamaydi.
+const pending2fa = {
+  set(userId, entry) {
+    db.prepare('INSERT OR REPLACE INTO pending_2fa (user_id, code, expires) VALUES (?,?,?)')
+      .run(userId, entry.code, entry.expires);
+  },
+  get(userId) {
+    return db.prepare('SELECT code, expires FROM pending_2fa WHERE user_id = ?').get(userId);
+  },
+  delete(userId) {
+    db.prepare('DELETE FROM pending_2fa WHERE user_id = ?').run(userId);
+  },
+};
 const resetTokens = new Map();  // token  -> { userId, expires }
 
 const strongEnough = (p) =>
