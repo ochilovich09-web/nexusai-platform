@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   Dizayn tokenlari. Dark — DESIGN.md dan aynan olingan.
+   Light — o'sha urug' rangdan hosil qilingan mos palitra.
+------------------------------------------------------------------ */
+:root,
+.dark {
+  --surface: 15 19 28;
+  --surface-dim: 15 19 28;
+  --surface-bright: 53 57 67;
+  --surface-container-lowest: 10 14 23;
+  --surface-container-low: 24 27 37;
+  --surface-container: 28 31 41;
+  --surface-container-high: 38 42 52;
+  --surface-container-highest: 49 53 63;
+  --surface-variant: 49 53 63;
+  --on-surface: 223 226 239;
+  --on-surface-variant: 199 196 215;
+  --inverse-surface: 223 226 239;
+  --inverse-on-surface: 44 48 58;
+  --outline: 144 143 160;
+  --outline-variant: 70 69 84;
+  --surface-tint: 192 193 255;
+
+  --primary: 192 193 255;
+  --on-primary: 16 0 169;
+  --primary-container: 128 131 255;
+  --on-primary-container: 13 0 150;
+  --inverse-primary: 73 75 214;
+
+  --secondary: 76 215 246;
+  --on-secondary: 0 54 64;
+  --secondary-container: 3 181 211;
+  --on-secondary-container: 0 66 78;
+
+  --tertiary: 78 222 163;
+  --on-tertiary: 0 56 36;
+  --tertiary-container: 0 136 93;
+  --on-tertiary-container: 0 7 3;
+
+  --error: 255 180 171;
+  --on-error: 105 0 5;
+  --error-container: 147 0 10;
+  --on-error-container: 255 218 214;
+
+  --warning: 245 158 11;
+  --on-warning: 43 26 0;
+
+  --background: 15 19 28;
+  --on-background: 223 226 239;
+
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  --surface: 251 248 255;
+  --surface-dim: 219 217 230;
+  --surface-bright: 255 255 255;
+  --surface-container-lowest: 255 255 255;
+  --surface-container-low: 245 242 255;
+  --surface-container: 239 237 249;
+  --surface-container-high: 233 231 243;
+  --surface-container-highest: 227 225 238;
+  --surface-variant: 227 225 236;
+  --on-surface: 27 27 35;
+  --on-surface-variant: 70 70 79;
+  --inverse-surface: 48 48 56;
+  --inverse-on-surface: 242 239 247;
+  --outline: 119 118 128;
+  --outline-variant: 199 197 208;
+  --surface-tint: 73 75 214;
+
+  --primary: 73 75 214;
+  --on-primary: 255 255 255;
+  --primary-container: 225 224 255;
+  --on-primary-container: 13 0 150;
+  --inverse-primary: 192 193 255;
+
+  --secondary: 0 105 123;
+  --on-secondary: 255 255 255;
+  --secondary-container: 172 237 255;
+  --on-secondary-container: 0 31 38;
+
+  --tertiary: 0 108 72;
+  --on-tertiary: 255 255 255;
+  --tertiary-container: 111 251 190;
+  --on-tertiary-container: 0 33 19;
+
+  --error: 186 26 26;
+  --on-error: 255 255 255;
+  --error-container: 255 218 214;
+  --on-error-container: 65 0 2;
+
+  --warning: 176 106 0;
+  --on-warning: 255 255 255;
+
+  --background: 251 248 255;
+  --on-background: 27 27 35;
+
+  color-scheme: light;
+}
+
+@layer base {
+  * { border-color: rgb(var(--outline-variant) / 0.6); }
+
+  html, body, #root { height: 100%; }
+
+  body {
+    @apply bg-background text-on-background font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+  }
+
+  ::selection { background: rgb(var(--primary) / 0.28); }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--outline-variant));
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--outline)); background-clip: content-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-surface-container-low border border-outline-variant/60 rounded-md;
+  }
+  .card {
+    @apply bg-surface-container border border-outline-variant/60 rounded-md transition-colors;
+  }
+  .card-hover { @apply hover:border-primary/40; }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded text-label-md
+           transition-colors disabled:opacity-45 disabled:pointer-events-none whitespace-nowrap;
+  }
+  .btn-primary { @apply btn bg-primary text-on-primary hover:bg-primary/85; }
+  .btn-outline { @apply btn bg-surface-container border border-outline-variant text-on-surface hover:border-primary hover:text-primary; }
+  .btn-ghost   { @apply btn text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface; }
+  .btn-danger  { @apply btn bg-error/15 text-error border border-error/30 hover:bg-error/25; }
+  .btn-sm      { @apply h-8 px-3 text-label-sm; }
+
+  .input {
+    @apply w-full h-10 px-3 rounded bg-surface-container-lowest border border-outline-variant
+           text-on-surface text-body-md placeholder:text-on-surface-variant/60
+           focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none transition;
+  }
+  .textarea { @apply input h-auto py-2.5 resize-none leading-relaxed; }
+  .select   { @apply input pr-8 cursor-pointer; }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 h-[1.375rem] px-2 rounded-full text-label-sm border;
+  }
+  .chip-ai      { @apply chip bg-secondary/10 text-secondary border-secondary/25; }
+  .chip-ok      { @apply chip bg-tertiary/10 text-tertiary border-tertiary/25; }
+  .chip-warn    { @apply chip bg-warning/10 text-warning border-warning/30; }
+  .chip-danger  { @apply chip bg-error/10 text-error border-error/30; }
+  .chip-neutral { @apply chip bg-surface-container-high text-on-surface-variant border-outline-variant; }
+  .chip-primary { @apply chip bg-primary/12 text-primary border-primary/30; }
+
+  .meta { @apply text-body-sm text-on-surface-variant; }
+  .stat-value { @apply text-[1.75rem] leading-tight font-semibold tracking-tight; }
+
+  .icon {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+}
+
+/* Markdown javoblar */
+.prose-nexus { @apply text-body-md leading-relaxed text-on-surface; }
+.prose-nexus p { @apply mb-3; }
+.prose-nexus h1, .prose-nexus h2, .prose-nexus h3 { @apply font-semibold text-on-surface mt-5 mb-2; }
+.prose-nexus h1 { @apply text-headline-md; }
+.prose-nexus h2 { @apply text-[1.05rem]; }
+.prose-nexus ul { @apply list-disc pl-5 mb-3 space-y-1; }
+.prose-nexus ol { @apply list-decimal pl-5 mb-3 space-y-1; }
+.prose-nexus a { @apply text-secondary underline underline-offset-2; }
+.prose-nexus blockquote { @apply border-l-2 border-primary/50 pl-3 my-3 text-on-surface-variant; }
+.prose-nexus code {
+  @apply font-mono text-code-md bg-surface-container-highest px-1.5 py-0.5 rounded-sm text-secondary;
+}
+.prose-nexus pre {
+  @apply bg-surface-container-lowest border border-outline-variant/60 rounded-md p-3 overflow-x-auto my-3;
+}
+.prose-nexus pre code { @apply bg-transparent p-0 text-on-surface; }
+.prose-nexus table { @apply w-full text-body-sm my-3 border-collapse; }
+.prose-nexus th, .prose-nexus td { @apply border border-outline-variant/60 px-2.5 py-1.5 text-left; }
+.prose-nexus th { @apply bg-surface-container-high font-medium; }
